@@ -1,14 +1,14 @@
 #region Apache License, Version 2.0
-// 
+//
 // Copyright 2014 Atif Aziz
 // Portions Copyright 2012 Søren Enemærke
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,7 +28,7 @@ namespace UAParser
     using System.IO;
     using System.Linq;
     using System.Text.RegularExpressions;
-    
+
     #endregion
 
     /// <summary>
@@ -53,7 +53,7 @@ namespace UAParser
         /// </summary>
         public bool IsSpider { get { return "Spider".Equals(Family, StringComparison.OrdinalIgnoreCase); } }
         /// <summary>
-        ///The brand of the device 
+        ///The brand of the device
         /// </summary>
         public string Brand { get; private set; }
         /// <summary>
@@ -85,29 +85,29 @@ namespace UAParser
         /// </summary>
         public OS(string family, string major, string minor, string patch, string patchMinor)
         {
-            Family     = family;
-            Major      = major;
-            Minor      = minor;
-            Patch      = patch;
+            Family = family;
+            Major = major;
+            Minor = minor;
+            Patch = patch;
             PatchMinor = patchMinor;
         }
 
         /// <summary>
         /// The familiy of the OS
         /// </summary>
-        public string Family     { get; private set; }
+        public string Family { get; private set; }
         /// <summary>
         /// The major version of the OS, if available
         /// </summary>
-        public string Major      { get; private set; }
+        public string Major { get; private set; }
         /// <summary>
         /// The minor version of the OS, if available
         /// </summary>
-        public string Minor      { get; private set; }
+        public string Minor { get; private set; }
         /// <summary>
         /// The patch version of the OS, if available
         /// </summary>
-        public string Patch      { get; private set; }
+        public string Patch { get; private set; }
         /// <summary>
         /// The minor patch version of the OS, if available
         /// </summary>
@@ -129,15 +129,20 @@ namespace UAParser
     public sealed class UserAgent
     {
         /// <summary>
-        /// Construct a UserAgent instance 
+        /// Construct a UserAgent instance
         /// </summary>
         public UserAgent(string family, string major, string minor, string patch)
         {
             Family = family;
-            Major  = major;
-            Minor  = minor;
-            Patch  = patch;
+            Major = major;
+            Minor = minor;
+            Patch = patch;
         }
+
+        /// <summary>
+        /// IsBot!
+        /// </summary>
+        public bool IsBot { get { return Family.EndsWith("Bot"); } }
 
         /// <summary>
         /// The family of user agent
@@ -146,15 +151,15 @@ namespace UAParser
         /// <summary>
         /// Major version of the user agent, if available
         /// </summary>
-        public string Major  { get; private set; }
+        public string Major { get; private set; }
         /// <summary>
         /// Minor version of the user agent, if available
         /// </summary>
-        public string Minor  { get; private set; }
+        public string Minor { get; private set; }
         /// <summary>
         /// Patch version of the user agent, if available
         /// </summary>
-        public string Patch  { get; private set; }
+        public string Patch { get; private set; }
 
         /// <summary>
         /// The user agent as a readbale string
@@ -176,7 +181,7 @@ namespace UAParser
     }
 
     /// <summary>
-    /// Representing the parse results. Structure of this class aligns with the 
+    /// Representing the parse results. Structure of this class aligns with the
     /// ua-parser-output WebIDL structure defined in this document: https://github.com/ua-parser/uap-core/blob/master/docs/specification.md
     /// </summary>
     public interface IUAParserOutput
@@ -235,7 +240,7 @@ namespace UAParser
         public UserAgent UA { get; private set; }
 
         /// <summary>
-        /// Constructs an instance of the ClientInfo with results of the user agent string parsing 
+        /// Constructs an instance of the ClientInfo with results of the user agent string parsing
         /// </summary>
         public ClientInfo(string inputString, OS os, Device device, UserAgent userAgent)
         {
@@ -292,7 +297,7 @@ namespace UAParser
         /// <returns>A <see cref="Parser"/> instance parsing user agent strings based on the regexes defined in the yaml string</returns>
         public static Parser FromYamlFile(string path) { return new Parser(new MinimalYamlParser(File.ReadAllText(path))); }
         /// <summary>
-        /// Returns a <see cref="Parser"/> instance based on the embedded regex definitions. 
+        /// Returns a <see cref="Parser"/> instance based on the embedded regex definitions.
         /// <remarks>The embedded regex definitions may be outdated. Consider passing in external yaml definitions using <see cref="Parser.FromYaml"/> or
         /// <see cref="Parser.FromYamlFile"/></remarks>
         /// </summary>
@@ -310,9 +315,9 @@ namespace UAParser
         /// </summary>
         public ClientInfo Parse(string uaString)
         {
-            var os     = ParseOS(uaString);
+            var os = ParseOS(uaString);
             var device = ParseDevice(uaString);
-            var ua     = ParseUserAgent(uaString);
+            var ua = ParseUserAgent(uaString);
             return new ClientInfo(uaString, os, device, ua);
         }
 
@@ -345,7 +350,7 @@ namespace UAParser
             // ReSharper disable once InconsistentNaming
             public static Func<string, OS> OS(Func<string, string> indexer)
             {
-                var regex = Regex(indexer, "OS");
+                var regex = Regex(indexer, "OS", indexer("regex_flag"));
                 var os = indexer("os_replacement");
                 var v1 = indexer("os_v1_replacement");
                 var v2 = indexer("os_v2_replacement");
@@ -356,7 +361,7 @@ namespace UAParser
 
             public static Func<string, UserAgent> UserAgent(Func<string, string> indexer)
             {
-                var regex = Regex(indexer, "User agent");
+                var regex = Regex(indexer, "User agent", indexer("regex_flag"));
                 var family = indexer("family_replacement");
                 var v1 = indexer("v1_replacement");
                 var v2 = indexer("v2_replacement");
@@ -378,24 +383,24 @@ namespace UAParser
                 var pattern = indexer("regex");
                 if (pattern == null)
                     throw new Exception(String.Format("{0} is missing regular expression specification.", key));
-
-                // Some expressions in the regex.yaml file causes parsing errors 
-                // in .NET such as the \_ token so need to alter them before 
+                
+                // Some expressions in the regex.yaml file causes parsing errors
+                // in .NET such as the \_ token so need to alter them before
                 // proceeding.
 
                 if (pattern.IndexOf(@"\_", StringComparison.Ordinal) >= 0)
                     pattern = pattern.Replace(@"\_", "_");
 
-                // TODO: potentially allow parser to specify e.g. to use 
-                // compiled regular expressions which are faster but increase 
+                // TODO: potentially allow parser to specify e.g. to use
+                // compiled regular expressions which are faster but increase
                 // startup time
-                 RegexOptions options = RegexOptions.None;
+                RegexOptions options = RegexOptions.Compiled;
                 if ("i".Equals(regexFlag))
                     options |= RegexOptions.IgnoreCase;
                 return new Regex(pattern, options);
             }
         }
-        
+
         static class Parsers
         {
             // ReSharper disable once InconsistentNaming
@@ -443,7 +448,7 @@ namespace UAParser
             {
                 "$1","$2","$3","$4","$5","$6","$7","$8","$91",
             };
-            
+
             static Func<Match, IEnumerator<int>, string> ReplaceAll(
                 string replacement)
             {
