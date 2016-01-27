@@ -4,9 +4,9 @@
     <id>$id$</id>
     <version>$version$</version>
     <title>$title$</title>
-    <authors>enemaerke</authors>
-    <owners>enemaerke</owners>
-    <projectUrl>https://github.com/tobie/ua-parser</projectUrl>
+    <authors>ion</authors>
+    <owners>ion</owners>
+    <projectUrl>https://github.com/ioninteractive/uap-csharp</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>A .net wrapper for the ua-parser library</description>
     <copyright>Copyright 2015</copyright>
